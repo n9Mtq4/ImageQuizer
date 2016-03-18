@@ -27,6 +27,7 @@ internal fun encodeSearchUrl(query: String): String {
  * size number of direct links to images that are displayed
  * from the url
  * */
+@Suppress("UNCHECKED_CAST")
 internal fun getImageLinks(url: String, size: Int): List<String> {
 	
 	try {
@@ -35,9 +36,9 @@ internal fun getImageLinks(url: String, size: Int): List<String> {
 		
 		val links = elements.map { it.attr("href") }.map { decodeImageHandler(it) } // decode all the hrefs
 		
-		// return only a specific size
-		if (size != -1) return links.subList(0, size)
-		else return links
+		// return only a specific size - we can cast cause we filtered by it != null
+		if (size != -1) return links.subList(0, size) as List<String>
+		else return links as List<String>
 		
 	}catch (e: Exception) {
 		e.printStackTrace()

@@ -1,6 +1,6 @@
 package com.n9mtq4.imagequizer
 
-import com.n9mtq4.kotlin.extlib.open
+import com.n9mtq4.kotlin.extlib.io.open
 import com.n9mtq4.kotlin.extlib.pstAndGiven
 import com.n9mtq4.kotlin.extlib.pstAndNull
 import java.io.BufferedReader
