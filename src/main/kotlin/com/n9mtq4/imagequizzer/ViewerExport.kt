@@ -1,4 +1,4 @@
-package com.n9mtq4.imagequizer
+package com.n9mtq4.imagequizzer
 
 import com.n9mtq4.kotlin.extlib.io.open
 import com.n9mtq4.kotlin.extlib.pstAndGiven
