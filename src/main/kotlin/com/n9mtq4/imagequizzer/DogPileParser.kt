@@ -35,7 +35,7 @@ internal fun getImageLinks(url: String, size: Int): List<String> {
 		val doc = Jsoup.connect(url).userAgent(USER_AGENT).get() // get the dom for the results
 		val elements = doc.select(IMAGE_LINK_SELECTOR) // find all image links
 		
-		val links = elements.map { it.attr("href") }.map { pstAndNull { decodeImageHandler(it) } } // decode all the hrefs
+		val links = elements.map { it.attr("href") }.map { pstAndNull { decodeImageHandler(it) } }.filterNot { it == null } // decode all the hrefs
 		
 		// return only a specific size - we can cast cause we filtered by it != null
 		if (size != -1) return links.subList(0, size) as List<String>

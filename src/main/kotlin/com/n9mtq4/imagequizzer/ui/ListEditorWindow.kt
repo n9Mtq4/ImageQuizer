@@ -1,12 +1,16 @@
 package com.n9mtq4.imagequizzer.ui
 
+import com.n9mtq4.imagequizzer.ImageDlThread
+import com.n9mtq4.imagequizzer.checkForUpdate
+import com.n9mtq4.kotlin.extlib.ignoreAndNull
 import com.n9mtq4.kotlin.extlib.io.open
+import com.n9mtq4.kotlin.extlib.pstAndUnit
 import java.awt.BorderLayout
+import java.awt.event.ActionEvent
 import java.awt.event.WindowEvent
 import java.awt.event.WindowListener
 import java.io.File
 import javax.swing.JButton
-import javax.swing.JFileChooser
 import javax.swing.JFrame
 import javax.swing.JOptionPane
 import javax.swing.JScrollPane
@@ -17,7 +21,9 @@ import javax.swing.event.DocumentListener
 
 /**
  * Created by will on 3/18/16 at 12:59 PM.
- *
+ * 
+ * TODO: this file is large - move things to other files
+ * 
  * @author Will "n9Mtq4" Bresnahan
  */
 class ListEditorWindow {
@@ -26,11 +32,20 @@ class ListEditorWindow {
 		private const val DEFAULT_TITLE = "Image Quizzer"
 	}
 	
-	private val frame: JFrame
-	private val textArea: JTextArea
-	private val go: JButton
+	internal val frame: JFrame
+	internal val textArea: JTextArea
+	internal val go: JButton
 	
 	private var lastSave: File? = null
+	
+	internal var prefix = ""
+		private set
+	internal var suffix = ""
+		private set
+	internal var imageSize = -1
+		private set
+	
+	private var thread: ImageDlThread? = null
 	
 	init {
 		
@@ -43,7 +58,7 @@ class ListEditorWindow {
 			
 			menuList("File") {
 				
-				menuItem("Open").onAction { println(it.source) }.shortcut('o')
+				menuItem("Open").onAction { open() }.shortcut('o')
 				menuItem("Save").onAction { save(lastSave) }.shortcut('s')
 				menuItem("Save As").onAction { save(null) }.shortcut('s', shift = true)
 				menuItem("Clear").onAction { textArea.text = "" }.shortcut('c', shift = true)
@@ -53,9 +68,18 @@ class ListEditorWindow {
 			
 			menuList("Options") {
 				
-				menuItem("Prefix")
-				menuItem("Suffix")
-				menuItem("Number of images")
+				menuItem("Prefix").onAction { requestString(frame, "Please enter a prefix\n(currently '$prefix')", prefix) { prefix = it } }
+				menuItem("Suffix").onAction { requestString(frame, "Please enter a suffix\n(currently '$suffix')", suffix) { suffix = it } }
+				menuItem("Number of images").onAction {
+					requestString(frame, "Please enter the number of images", imageSize.toString()) {
+						val i = ignoreAndNull { it.toInt() }
+						if (i == null) {
+							JOptionPane.showMessageDialog(frame, "Please enter a number\n(currently $imageSize)", "Error", JOptionPane.ERROR_MESSAGE)
+							return@requestString
+						}
+						imageSize = i
+					}
+				}
 				
 			}
 			
@@ -68,7 +92,7 @@ class ListEditorWindow {
 			menuList("Info") {
 				
 				menuItem("Contact / Help")
-				menuItem("Check for update")
+				menuItem("Check for update").onAction { checkForUpdate() }
 				menuItem("About")
 				
 			}
@@ -100,41 +124,114 @@ class ListEditorWindow {
 			override fun windowActivated(e: WindowEvent) {}
 			override fun windowDeactivated(e: WindowEvent) {}
 			override fun windowIconified(e: WindowEvent) {}
-			override fun windowClosing(e: WindowEvent) {
-				if (!frame.title.endsWith("*", ignoreCase = true)) return
-//				TODO: ask them if they want to save
-			}
+			override fun windowClosing(e: WindowEvent) { if (isSaveInvalidated()) askForSave() }
 			override fun windowClosed(e: WindowEvent) {}
 			override fun windowOpened(e: WindowEvent) {}
 		})
 		
+		go.addActionListener { goButton(it) }
+		
 	}
 	
+	/**
+	 * When the go button is pressed
+	 * */
+	private fun goButton(e: ActionEvent) {
+		
+		val shouldStart = go.text.equals("start", ignoreCase = true)
+		
+		if (shouldStart) {
+			// start
+			// shouldn't be triggered, but its good to check
+			stopThread()
+			
+			val outputDir = openDirectoryChooser(frame, "Where to save the quiz?") ?: return
+			
+			thread = ImageDlThread(this, outputDir).apply { start() }
+			
+		}else {
+			// stop
+			stopThread()
+		}
+		
+		updateGoButtonStatus(thread?.isAlive ?: false)
+		
+	}
+	
+	internal fun stopThread() {
+		thread ?: return // if its null, leave
+		if (!(thread?.isAlive ?: false)) return // if its dead, leave
+		pstAndUnit { 
+			thread?.apply { 
+				cancel()
+				join()
+			}
+		}
+	}
+	
+	internal fun updateGoButtonStatus(isRunning: Boolean) {
+		go.text = if (isRunning) "Stop" else "Start"
+	}
+	
+	/**
+	 * Add the star to the frame
+	 * */
 	private fun invalidateSave() {
 		frame.title = "$DEFAULT_TITLE - ${lastSave?.name ?: "Unsaved"}*"
 	}
 	
+	/**
+	 * Remove the star from the frame
+	 * */
 	private fun validateSave() {
 		frame.title = "$DEFAULT_TITLE - ${lastSave?.name ?: "Unsaved"}"
 	}
 	
+	/**
+	 * Reads data from a text file and sets it in the textArea
+	 * */
+	private fun open() {
+		
+		if (isSaveInvalidated()) askForSave() // we want to save the data before overwriting it with this new stuff
+		
+		val file = open(openOpenDialog(frame, "Open list") ?: return, "r") // open with only read access
+		val text = file.readAll() // read everything
+		
+		textArea.text = text
+		
+		file.close()
+		
+	}
+	
+	/**
+	 * Saves the data in the textArea to a file
+	 * */
 	private fun save(f: File?) {
 		
-		lastSave = f ?: openSaveDialog() ?: return // if f is null, open the save dialog. If the save dialog is null return
+		lastSave = f ?: openSaveDialog(frame, "Where to save?") ?: return // if f is null, open the save dialog. If the save dialog is null return
 		
-		open(lastSave ?: return, "w").write(textArea.text).close() // save to said file
+		val rawFile = lastSave ?: return // return if the file is null
+		val file = if (rawFile.name.contains(".")) rawFile else File(rawFile.parentFile, rawFile.name + ".txt") // add a .txt if it isn't present
+		open(file, "w").write(textArea.text).close() // save to said file
 		
 		validateSave()
 		
 	}
 	
-	private fun openSaveDialog(): File? {
+	/**
+	 * Asks the user if they want to save their current work
+	 * */
+	private fun askForSave() {
 		
-		val chooser = JFileChooser()
-		chooser.dialogTitle = "Where to save?"
-		val result = chooser.showSaveDialog(frame)
-		return if (result == JFileChooser.APPROVE_OPTION) chooser.selectedFile else null
+		val response = JOptionPane.showConfirmDialog(frame, "Do you want to save?", "Save?", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE)
+		if (response != JOptionPane.YES_OPTION) return
+		save(lastSave)
 		
 	}
+	
+	/**
+	 * Has the user saved their data. true = no, false = yes
+	 * */
+	private fun isSaveInvalidated() = frame.title.endsWith("*", ignoreCase = true)
 	
 }
