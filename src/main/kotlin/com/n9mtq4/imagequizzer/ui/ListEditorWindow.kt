@@ -1,7 +1,8 @@
 package com.n9mtq4.imagequizzer.ui
 
-import com.n9mtq4.imagequizzer.ImageDlThread
 import com.n9mtq4.imagequizzer.checkForUpdate
+import com.n9mtq4.imagequizzer.model.ImageQuizzerModel
+import com.n9mtq4.imagequizzer.worker.ImageDlThread
 import com.n9mtq4.kotlin.extlib.ignoreAndNull
 import com.n9mtq4.kotlin.extlib.io.open
 import com.n9mtq4.kotlin.extlib.pstAndUnit
@@ -44,6 +45,8 @@ class ListEditorWindow {
 		private set
 	internal var imageSize = -1
 		private set
+	internal var download = false
+		private set
 	
 	private var thread: ImageDlThread? = null
 	
@@ -71,7 +74,7 @@ class ListEditorWindow {
 				menuItem("Prefix").onAction { requestString(frame, "Please enter a prefix\n(currently '$prefix')", prefix) { prefix = it } }
 				menuItem("Suffix").onAction { requestString(frame, "Please enter a suffix\n(currently '$suffix')", suffix) { suffix = it } }
 				menuItem("Number of images").onAction {
-					requestString(frame, "Please enter the number of images", imageSize.toString()) {
+					requestString(frame, "Please enter the number of images (-1 for all)", imageSize.toString()) {
 						val i = ignoreAndNull { it.toInt() }
 						if (i == null) {
 							JOptionPane.showMessageDialog(frame, "Please enter a number\n(currently $imageSize)", "Error", JOptionPane.ERROR_MESSAGE)
@@ -80,6 +83,7 @@ class ListEditorWindow {
 						imageSize = i
 					}
 				}
+				menuCheckboxItem("Download Images").onValueUpdate { download = it }.applyOnMenuCheckboxItem { isSelected = download }
 				
 			}
 			
@@ -147,7 +151,18 @@ class ListEditorWindow {
 			
 			val outputDir = openDirectoryChooser(frame, "Where to save the quiz?") ?: return
 			
-			thread = ImageDlThread(this, outputDir).apply { start() }
+			val model = ImageQuizzerModel(prefix, suffix, imageSize, download, outputDir, textArea.text)
+			
+			val progressWindow = ProgressWindow(this)
+			thread = ImageDlThread(model, 
+					progressCallback = {
+						i, t -> progressWindow.update(i, t)
+					}, 
+					doneCallback = {
+						updateGoButtonStatus(false)
+						progressWindow.dispose()
+					})
+					.apply { start() }
 			
 		}else {
 			// stop
@@ -158,9 +173,12 @@ class ListEditorWindow {
 		
 	}
 	
+	/**
+	 * Stops the ImageDlThread
+	 * */
 	internal fun stopThread() {
 		thread ?: return // if its null, leave
-		if (!(thread?.isAlive ?: false)) return // if its dead, leave
+		if (!(thread?.isAlive ?: false)) return // if its dead or null, leave
 		pstAndUnit { 
 			thread?.apply { 
 				cancel()
@@ -169,6 +187,10 @@ class ListEditorWindow {
 		}
 	}
 	
+	/**
+	 * sets the go button to stop or start based on if the downloader is
+	 * running or not
+	 * */
 	internal fun updateGoButtonStatus(isRunning: Boolean) {
 		go.text = if (isRunning) "Stop" else "Start"
 	}

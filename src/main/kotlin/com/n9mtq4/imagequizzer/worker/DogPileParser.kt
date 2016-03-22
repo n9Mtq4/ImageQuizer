@@ -1,5 +1,6 @@
-package com.n9mtq4.imagequizzer
+package com.n9mtq4.imagequizzer.worker
 
+import com.n9mtq4.imagequizzer.USER_AGENT
 import com.n9mtq4.kotlin.extlib.pstAndNull
 import org.jsoup.Jsoup
 import java.net.URLDecoder

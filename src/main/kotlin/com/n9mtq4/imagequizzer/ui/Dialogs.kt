@@ -13,7 +13,7 @@ import javax.swing.JOptionPane
 /**
  * Opens the JFileChooser for saving
  * */
-internal  fun openSaveDialog(parent: JFrame, title: String): File? {
+internal fun openSaveDialog(parent: JFrame, title: String): File? {
 	
 	val chooser = JFileChooser()
 	chooser.dialogTitle = title

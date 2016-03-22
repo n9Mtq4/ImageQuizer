@@ -17,6 +17,7 @@ dependencies {
     compile fileTree(dir: 'lib/', include: ['*.jar', "*.zip"])
     compile "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
     compile "org.jsoup:jsoup:1.8.3"
+    compile "com.googlecode.json-simple:json-simple:1.1.1"
 }
 
 buildscript {
@@ -37,3 +38,28 @@ jar {
     }
     from { configurations.compile.collect { it.isDirectory() ? it : zipTree(it) } }
 }
+
+/*http://www.tikalk.com/devops/increment-version-numbers-in-gradle/*/
+task buildnumberplusone {
+    Properties props = new Properties()
+    File propsFile = new File('gradle.properties')
+    props.load(propsFile.newDataInputStream())
+    Integer nextbuildnum = ( ((props.getProperty('artifactBuildNumber')) as BigDecimal) + 1 )
+    props.setProperty('artifactBuildNumber', nextbuildnum.toString())
+    props.store(propsFile.newWriter(), null)
+    props.load(propsFile.newDataInputStream())
+    System.out.println("Build Number: $artifactBuildNumber")
+}
+
+task generateVersion {
+    File outputFile = new File("src/main/kotlin/com/n9mtq4/imagequizzer/Version.kt")
+    PrintWriter writer = new PrintWriter(outputFile)
+    writer.println("/*AUTO GENERATED FILE*/")
+    writer.println("package com.n9mtq4.imagequizzer")
+    writer.println("internal val BUILD_NUMBER = $artifactBuildNumber")
+    writer.close()
+    System.out.println("Generated Version File")
+}
+
+build.dependsOn buildnumberplusone
+build.dependsOn generateVersion
