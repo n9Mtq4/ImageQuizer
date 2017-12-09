@@ -14,7 +14,7 @@ internal fun queryListToDatabaseAndImages(
 		outputDirectory: File, 
 		prefix: String = "",
 		suffix: String = "",
-		numImages: Int = -1,
+		numImages: Int = -1, 
 		shouldDownload: Boolean = true) {
 	
 	// apply prefix and suffix onto queries

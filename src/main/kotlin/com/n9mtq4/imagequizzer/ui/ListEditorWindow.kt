@@ -1,8 +1,13 @@
 package com.n9mtq4.imagequizzer.ui
 
+import com.n9mtq4.imagequizzer.worker.queryListToDatabaseAndImages
+import com.n9mtq4.imagequizzer.worker.readFromJar
+import com.n9mtq4.kotlin.extlib.ignoreAndNull
 import java.awt.BorderLayout
+import java.awt.Desktop
 import java.awt.Dimension
 import java.io.File
+import java.net.URI
 import javax.swing.*
 
 /**
@@ -22,14 +27,10 @@ internal class ListEditorWindow {
 	private var lastSave: File? = null
 	
 	// start user preferences / options
-	internal var prefix = ""
-		private set
-	internal var suffix = ""
-		private set
-	internal var numImages = -2
-		private set
-	internal var shouldDownload = false
-		private set
+	private var prefix = ""
+	private var suffix = ""
+	private var numImages = -1
+	private var shouldDownload = false
 	
 	init {
 		
@@ -46,19 +47,34 @@ internal class ListEditorWindow {
 			
 			menuList("File") {
 				
-				menuItem("Open").shortcut('o')
-				menuItem("Save").shortcut('s')
-				menuItem("Save As").shortcut('s', shift = true)
-				menuItem("Clear").shortcut('l', shift = true)
+				menuItem("Open")
+						.shortcut('o')
+				menuItem("Save")
+						.shortcut('s')
+				menuItem("Save As")
+						.shortcut('s', shift = true)
+				menuItem("Clear")
+						.shortcut('l', shift = true)
 				menuItem("Exit")
+						.onActionSafeIgnore { frame.dispose() }
 				
 			}
 			
 			menuList("Options") {
 				
 				menuItem("Prefix")
+						.onActionSafePst { requestString(frame, "Please enter a prefix\nCurrently: '$prefix'", prefix) { prefix = it } }
 				menuItem("Suffix")
-				menuItem("Number of images")
+						.onActionSafePst {requestString(frame, "Please enter a suffix\nCurrently: '$suffix'", suffix) { suffix = it } }
+				menuItem("Number of images").onActionSafePst {
+					requestString(frame, "Please enter the number of images (-1 for all)", numImages.toString()) {
+						val i = ignoreAndNull { it.toInt() }
+						numImages = i ?: run {
+							JOptionPane.showMessageDialog(frame, "Please enter a number\n(currently $numImages)", "Error", JOptionPane.ERROR_MESSAGE)
+							return@requestString
+						}
+					}
+				}
 				menuCheckboxItem("Download Images")
 						.onValueUpdate { shouldDownload = it } // update our value based on what user clicks
 						.applyOnMenuCheckboxItem { isSelected = shouldDownload } // default value of shouldDownload
@@ -68,14 +84,17 @@ internal class ListEditorWindow {
 			menuList("Stats") {
 				
 				menuItem("Line Count")
+						.onActionSafePst { JOptionPane.showMessageDialog(frame, "There are ${textArea.text.lines().size} lines.") }
 				
 			}
 			
 			menuList("Info") {
 				
 				menuItem("Submit Bug")
+						.onActionSafeIgnore { Desktop.getDesktop().browse(URI.create("https://github.com/n9Mtq4/ImageQuizzer/issues")) }
 				menuItem("Check for update")
 				menuItem("About")
+						.onActionSafePst { readFromJar("/about.txt").run(::println) } // TODO: some gui for this
 				
 			}
 			
@@ -99,6 +118,11 @@ internal class ListEditorWindow {
 			isVisible = true
 			setLocationRelativeTo(null) // center of the screen
 			
+		}
+		
+		goButton.addActionListener { e ->
+			val outputDir = openDirectoryChooser(frame, "Where to save?") ?: return@addActionListener
+			queryListToDatabaseAndImages(textArea.text.lines(), outputDir, prefix, suffix, numImages, shouldDownload)
 		}
 		
 	}

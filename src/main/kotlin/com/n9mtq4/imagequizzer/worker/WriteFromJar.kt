@@ -21,9 +21,9 @@ import java.io.InputStreamReader
 internal fun exportWebFromJar(outputDir: File) {
 	
 	// get the files it needs to export
-	readFromJar("export.txt").lines().forEach { name ->
+	readFromJar("/export.txt").lines().forEach { name ->
 		pst { 
-			val jarPath = "web/$name" // path inside jar
+			val jarPath = "/web/$name" // path inside jar
 			val text = readFromJar(jarPath) // contents
 			open(File(outputDir, name), "w").use { it.write(text) } // copy it outside jar
 		}
@@ -34,7 +34,7 @@ internal fun exportWebFromJar(outputDir: File) {
 /**
  * Reads the text from a file inside this jar
  * */
-private fun readFromJar(path: String): String = pstAndGiven("Error when exporting files!") {
+internal fun readFromJar(path: String): String = pstAndGiven("Error when reading jar!") {
 	
 	// TODO: not sure if object {} is the best way to do this
 	val input = object {}::class.java.getResourceAsStream(path)
