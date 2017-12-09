@@ -10,9 +10,7 @@ import java.io.File
  */
 fun main(args: Array<String>) = runBlocking<Unit> {
 	
-	val linksList = getImageLinksFromList(listOf("pyrite", "epidote", "lapis lazuli", "tourmaline", "sphalerite"))
 	
-	batchDownloadList(linksList, File("data/"))
 	
 }
 
@@ -27,5 +25,13 @@ private fun test1() {
 	
 	val parentFile = File("data")
 	files.toHtmlFormat(parentFile).forEach(::println)
+	
+}
+
+private fun test2() {
+	
+	val linksList = getImageLinksFromList(listOf("pyrite", "epidote", "lapis lazuli", "tourmaline", "sphalerite"))
+	
+	batchDownloadList(linksList, File("data/"))
 	
 }

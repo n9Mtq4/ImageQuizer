@@ -1,5 +1,6 @@
 package com.n9mtq4.imagequizzer
 
+import com.n9mtq4.imagequizzer.ui.ListEditorWindow
 import com.n9mtq4.kotlin.extlib.pst
 import org.apache.commons.cli.CommandLineParser
 import org.apache.commons.cli.GnuParser
@@ -66,6 +67,6 @@ private fun launchUi() {
 	
 	pst { UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName()) }
 	
-	
+	ListEditorWindow()
 	
 }

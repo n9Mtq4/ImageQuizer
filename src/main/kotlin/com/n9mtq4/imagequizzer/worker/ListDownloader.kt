@@ -12,12 +12,6 @@ import java.io.File
 
 internal fun getImageLinksFromList(queryList: List<String>, size: Int = -1) = queryList.map { getImageLinksFromQuery(it, size) }
 
-/*internal fun batchDownloadList(linkList: List<List<String>>, fileParent: File): List<List<File>> {
-	
-	return linkList.mapIndexed { i, links -> downloadImages(links, File(fileParent, "$i").apply { mkdirs() }) }
-	
-}*/
-
 // TODO: this does not have cancellation support
 internal fun batchDownloadList(linkListList: List<List<String>>, fileParent: File) = runBlocking<List<List<File>>> {
 	
