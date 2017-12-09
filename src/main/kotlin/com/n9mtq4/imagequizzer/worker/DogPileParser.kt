@@ -7,7 +7,7 @@ import java.net.URLDecoder
 import java.net.URLEncoder
 
 /**
- * Created by will on 3/17/16 at 9:25 PM.
+ * Created by will on 12/8/2017 at 10:38 PM.
  *
  * @author Will "n9Mtq4" Bresnahan
  */
@@ -29,24 +29,19 @@ internal fun encodeSearchUrl(query: String): String {
  * size number of direct links to images that are displayed
  * from the url
  * */
-@Suppress("UNCHECKED_CAST")
 internal fun getImageLinks(url: String, size: Int): List<String> {
 	
-	try {
-		val doc = Jsoup.connect(url).userAgent(USER_AGENT).get() // get the dom for the results
-		val elements = doc.select(IMAGE_LINK_SELECTOR) // find all image links
-		
-		val links = elements.map { it.attr("href") }.map { pstAndNull { decodeImageHandler(it) } }.filterNot { it == null } // decode all the hrefs
-		
-		// return only a specific size - we can cast cause we filtered by it != null
-		if (size != -1) return links.subList(0, size) as List<String>
-		else return links as List<String>
-		
-	}catch (e: Exception) {
-		e.printStackTrace()
-	}
+	val doc = Jsoup.connect(url).userAgent(USER_AGENT).get() // get the dom for the results
+	val elements = doc.select(IMAGE_LINK_SELECTOR) // find all the image links
 	
-	return listOf()
+	// now decode the hrefs from dogpile's thumbnails to full images
+	val links = elements
+			.map { it.attr("href") }
+			.mapNotNull { pstAndNull { decodeImageHandler(it) } }
+	
+	// return only a specific size
+	// if size == -1, then return the whole thing
+	return if (size == -1) links else links.take(size)
 	
 }
 
@@ -56,11 +51,17 @@ internal fun getImageLinks(url: String, size: Int): List<String> {
  * */
 private fun decodeImageHandler(url: String): String {
 	
-	// I wrote this on 3/10/15 - one year later and I have no idea what this code does :(
-	var rawUrl = "http${url.split("http")[2]}"
-	rawUrl = rawUrl.substring(0, rawUrl.length - 4)
-	val decode = URLDecoder.decode(rawUrl, "UTF-8")
-	println(decode)
-	return decode
+	var rawUrl = "http${url.split("http")[2]}" // find the second http. the first is the dogpile, the second is the image url
+	rawUrl = rawUrl.substring(0, rawUrl.length - 5) // trim off dogpile params on the end
+	val decode = decodeUrl(decodeUrl(rawUrl)) // decode the url - have to do it twice. not sure why, it just works
+	val adjUrl = decode.substring(0, decode.length - 1) // leaves a '&' on the end, have to remove it
+	return adjUrl
 	
 }
+
+/**
+ * A shorter version of URLDecoder.decode
+ * that doesn't require a string encoding and just
+ * defaults to uft-8
+ * */
+private fun decodeUrl(urlString: String) = URLDecoder.decode(urlString, "UTF-8")

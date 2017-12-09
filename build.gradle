@@ -1,37 +1,50 @@
+buildscript {
+    ext.kotlin_version = '1.2.0'
+
+    repositories {
+        mavenCentral()
+        flatDir dirs: proguard_dir
+    }
+    dependencies {
+        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
+        classpath ':proguard:'
+    }
+}
+
 group 'ImageQuizer'
-version '0.0.1'
+version '1.0-SNAPSHOT'
 
 apply plugin: 'java'
 apply plugin: 'kotlin'
 apply plugin: 'application'
 
-sourceCompatibility = 1.5
-mainClassName = "com.n9mtq4.imagequizzer.ImageQuizzerKt"
+sourceCompatibility = 1.8
+mainClassName = ""
 
 repositories {
     mavenCentral()
+    jcenter()
+    maven { url 'https://jitpack.io' }
 }
 
 dependencies {
-    testCompile group: 'junit', name: 'junit', version: '4.11'
-    compile fileTree(dir: 'lib/', include: ['*.jar', "*.zip"])
-    compile "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
-    compile "org.jsoup:jsoup:1.8.3"
-    compile "com.googlecode.json-simple:json-simple:1.1.1"
+    compile "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
+    compile "org.jetbrains.kotlinx:kotlinx-coroutines-jdk8:0.20"
+    compile 'com.github.n9Mtq4:KotlinExtLib:v1.1.0'
+    compile "com.google.code.gson:gson:2.8.2"
+    compile "org.jsoup:jsoup:1.11.2"
+    compile "commons-cli:commons-cli:1.2"
+    testCompile group: 'junit', name: 'junit', version: '4.12'
 }
 
-buildscript {
-    ext.kotlin_version = '1.0.1'
-    repositories {
-        mavenCentral()
-    }
-    dependencies {
-        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
-    }
+compileKotlin {
+    kotlinOptions.jvmTarget = "1.8"
 }
-sourceSets {
-    main.java.srcDirs += 'src/main/kotlin'
+
+compileTestKotlin {
+    kotlinOptions.jvmTarget = "1.8"
 }
+
 jar {
     manifest {
         attributes 'Main-Class': mainClassName
@@ -39,27 +52,20 @@ jar {
     from { configurations.compile.collect { it.isDirectory() ? it : zipTree(it) } }
 }
 
-/*http://www.tikalk.com/devops/increment-version-numbers-in-gradle/*/
-task buildnumberplusone {
-    Properties props = new Properties()
-    File propsFile = new File('gradle.properties')
-    props.load(propsFile.newDataInputStream())
-    Integer nextbuildnum = ( ((props.getProperty('artifactBuildNumber')) as BigDecimal) + 1 )
-    props.setProperty('artifactBuildNumber', nextbuildnum.toString())
-    props.store(propsFile.newWriter(), null)
-    props.load(propsFile.newDataInputStream())
-    System.out.println("Build Number: $artifactBuildNumber")
+task proguard(type: proguard.gradle.ProGuardTask) {
+    
+    configuration 'proguard.txt'
+    
+    libraryjars "${System.getProperty('java.home')}/lib/rt.jar"
+    
+    injars "build/libs/${project.getName()}-${project.getVersion()}.jar"
+    outjars "build/libs/${project.getName()}-${project.getVersion()}-proguard.jar"
+    
 }
 
-task generateVersion {
-    File outputFile = new File("src/main/kotlin/com/n9mtq4/imagequizzer/Version.kt")
-    PrintWriter writer = new PrintWriter(outputFile)
-    writer.println("/*AUTO GENERATED FILE*/")
-    writer.println("package com.n9mtq4.imagequizzer")
-    writer.println("internal val BUILD_NUMBER = $artifactBuildNumber")
-    writer.close()
-    System.out.println("Generated Version File")
+// experimental coroutines warning removal
+kotlin {
+    experimental {
+        coroutines 'enable'
+    }
 }
-
-build.dependsOn buildnumberplusone
-build.dependsOn generateVersion

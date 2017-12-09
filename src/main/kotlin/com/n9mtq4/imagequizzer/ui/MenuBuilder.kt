@@ -1,22 +1,20 @@
 package com.n9mtq4.imagequizzer.ui
 
-import com.n9mtq4.kotlin.doesntwork.AddMenuAccelerator
+import com.n9mtq4.kotlin.extlib.ignore
+import com.n9mtq4.kotlin.extlib.pst
 import java.awt.Component
 import java.awt.event.ActionEvent
 import java.awt.event.KeyEvent
-import javax.swing.JCheckBoxMenuItem
-import javax.swing.JMenu
-import javax.swing.JMenuBar
-import javax.swing.JMenuItem
+import javax.swing.*
 
 /**
  * Created by will on 3/18/16 at 1:01 PM.
- * 
+ *
  * Allows you to build a JMenuBar easily.
- * 
+ *
  * based loosely off of
  * http://try.kotlinlang.org/#/Examples/Longer%20examples/HTML%20Builder/HTML%20Builder.kt
- * 
+ *
  * @author Will "n9Mtq4" Bresnahan
  */
 abstract class MenuElement(val parent: MenuElement?) {
@@ -33,7 +31,7 @@ abstract class MenuElement(val parent: MenuElement?) {
 interface Actionable
 
 class MenuBarKt() : MenuElement(null) {
-	override fun generateComponent() = JMenuBar().apply { 
+	override fun generateComponent() = JMenuBar().apply {
 		children.map { it.component }.forEach { add(it) }
 	}
 }
@@ -73,7 +71,8 @@ inline fun MenuCheckboxItemKt.onValueUpdate(crossinline body: (Boolean) -> Unit)
 fun MenuItemKt.shortcut(key: Char, shift: Boolean = false, alt: Boolean = false, maskKey: Int = getMaskKey()) = this.applyOnMenuItem {
 	val mask = maskKey or (if (shift) KeyEvent.SHIFT_DOWN_MASK else 0) or (if (alt) KeyEvent.ALT_DOWN_MASK else 0)
 //	TODO: wtf kotlin? you mess up accelerators!?
-	AddMenuAccelerator.addKey(this, key, mask)
+//	AddMenuAccelerator.addKey(this, key, mask)
+	this.setAccelerator(KeyStroke.getKeyStroke(Character.toUpperCase(key).toInt(), mask))
 /*	this.accelerator = KeyStroke.getKeyStroke(key,
 			maskKey or 
 			(if (shift) KeyEvent.SHIFT_DOWN_MASK else 0) or 
@@ -81,3 +80,7 @@ fun MenuItemKt.shortcut(key: Char, shift: Boolean = false, alt: Boolean = false,
 }
 
 private fun getMaskKey() = if (System.getProperty("os.name").contains("mac", ignoreCase = true)) KeyEvent.META_DOWN_MASK else KeyEvent.CTRL_DOWN_MASK
+
+//TODO: requires KotlinExtLibs
+inline fun MenuItemKt.onActionSafePst(crossinline body: (ActionEvent) -> Unit) = onAction { pst { body.invoke(it) } }
+inline fun MenuItemKt.onActionSafeIgnore(crossinline body: (ActionEvent) -> Unit) = onAction { ignore { body.invoke(it) } }
