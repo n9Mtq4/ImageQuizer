@@ -6,6 +6,7 @@ import org.apache.commons.cli.CommandLineParser
 import org.apache.commons.cli.GnuParser
 import org.apache.commons.cli.HelpFormatter
 import org.apache.commons.cli.Options
+import javax.swing.SwingUtilities
 import javax.swing.UIManager
 
 /**
@@ -67,6 +68,6 @@ private fun launchUi() {
 	
 	pst { UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName()) }
 	
-	ListEditorWindow()
+	SwingUtilities.invokeLater { ListEditorWindow() }
 	
 }

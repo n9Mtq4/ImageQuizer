@@ -26,7 +26,7 @@ internal class ListEditorWindow {
 		private set
 	internal var suffix = ""
 		private set
-	internal var imageSize = -2
+	internal var numImages = -2
 		private set
 	internal var shouldDownload = false
 		private set
@@ -42,14 +42,14 @@ internal class ListEditorWindow {
 		this.goButton = JButton("Start")
 		
 		// generate the menu bar
-		val menuBar = menuBar { 
+		val menuBar = menuBar {
 			
 			menuList("File") {
 				
-				menuItem("Open")
-				menuItem("Save")
-				menuItem("Save As")
-				menuItem("Clear")
+				menuItem("Open").shortcut('o')
+				menuItem("Save").shortcut('s')
+				menuItem("Save As").shortcut('s', shift = true)
+				menuItem("Clear").shortcut('l', shift = true)
 				menuItem("Exit")
 				
 			}
@@ -60,6 +60,8 @@ internal class ListEditorWindow {
 				menuItem("Suffix")
 				menuItem("Number of images")
 				menuCheckboxItem("Download Images")
+						.onValueUpdate { shouldDownload = it } // update our value based on what user clicks
+						.applyOnMenuCheckboxItem { isSelected = shouldDownload } // default value of shouldDownload
 				
 			}
 			

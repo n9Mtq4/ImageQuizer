@@ -1,6 +1,5 @@
 
 import com.n9mtq4.imagequizzer.worker.*
-import kotlinx.coroutines.experimental.runBlocking
 import java.io.File
 
 /**
@@ -8,9 +7,9 @@ import java.io.File
  *
  * @author Will "n9Mtq4" Bresnahan
  */
-fun main(args: Array<String>) = runBlocking<Unit> {
+fun main(args: Array<String>) {
 	
-	
+	test3()
 	
 }
 
@@ -33,5 +32,11 @@ private fun test2() {
 	val linksList = getImageLinksFromList(listOf("pyrite", "epidote", "lapis lazuli", "tourmaline", "sphalerite"))
 	
 	batchDownloadList(linksList, File("data/"))
+	
+}
+
+private fun test3() {
+	
+	queryListToDatabaseAndImages(listOf("pyrite", "epidote", "lapis lazuli", "tourmaline", "sphalerite"), File("data/"))
 	
 }
