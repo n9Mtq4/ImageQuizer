@@ -1,7 +1,7 @@
 package com.n9mtq4.imagequizzer.worker
 
 import com.n9mtq4.imagequizzer.USER_AGENT
-import com.n9mtq4.kotlin.extlib.pstAndNull
+import com.n9mtq4.kotlin.extlib.ignoreAndNull
 import kotlinx.coroutines.experimental.async
 import kotlinx.coroutines.experimental.runBlocking
 import org.jsoup.Jsoup
@@ -25,6 +25,14 @@ fun downloadImages(links: List<String>, outputParent: File, outputFile: DlFileNa
 		
 		async {
 			
+			/*
+			* cancel support
+			* if canceled, don't download
+			* just return null for the
+			* rest of the images
+			* */
+			if (!isActive) return@async null
+			
 			// the link to download
 			val link = links[i]
 			
@@ -41,7 +49,7 @@ fun downloadImages(links: List<String>, outputParent: File, outputFile: DlFileNa
 			
 			// if downloadImage fails and it throws an exception, give it a value of null,
 			// otherwise return the file it was called
-			val out = pstAndNull {
+			val out = ignoreAndNull {
 				downloadImage(link, file) // download the image
 				file // return the file output path val out
 			}
@@ -67,7 +75,7 @@ suspend private fun downloadImage(link: String, file: File) {
 			.connect(link)
 			.userAgent(USER_AGENT) // user-agent - some sites don't give images to bots
 			.ignoreContentType(true) // ignore content - allows for images instead of html
-			.timeout(5000) // timeout - so we make sure we get the image
+			.timeout(15000) // timeout - so we make sure we get the image
 			.maxBodySize(Int.MAX_VALUE) // body size- so the images don't get cut off
 			.execute() // go!
 	

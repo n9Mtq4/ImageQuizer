@@ -15,10 +15,16 @@ private const val SEARCH_URL = "http://www.dogpile.com/dogpl.bko.y/search/images
 private const val IMAGE_LINK_SELECTOR = "#webResults > div > div.resultThumbnailPane > a"
 
 /**
+ * returns a list of image links from a
+ * search query
+ * */
+internal fun getImageLinksFromQuery(query: String, size: Int = -1) = getImageLinks(encodeSearchUrl(query), size)
+
+/**
  * Takes a query and returns the dogpile image search
  * link
  * */
-internal fun encodeSearchUrl(query: String): String {
+private fun encodeSearchUrl(query: String): String {
 	val encodedQuery = URLEncoder.encode(query, "UTF-8") // encode the query
 	val url = SEARCH_URL.replace("%s", encodedQuery) // add the query into the url
 	return url
@@ -29,7 +35,7 @@ internal fun encodeSearchUrl(query: String): String {
  * size number of direct links to images that are displayed
  * from the url
  * */
-internal fun getImageLinks(url: String, size: Int): List<String> {
+private fun getImageLinks(url: String, size: Int): List<String> {
 	
 	val doc = Jsoup.connect(url).userAgent(USER_AGENT).get() // get the dom for the results
 	val elements = doc.select(IMAGE_LINK_SELECTOR) // find all the image links
