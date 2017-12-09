@@ -1,5 +1,6 @@
 package com.n9mtq4.imagequizzer.worker
 
+import com.n9mtq4.imagequizzer.LinkListList
 import kotlinx.coroutines.experimental.async
 import kotlinx.coroutines.experimental.runBlocking
 import java.io.File
@@ -13,7 +14,7 @@ import java.io.File
 internal fun getImageLinksFromList(queryList: List<String>, size: Int = -1) = queryList.map { getImageLinksFromQuery(it, size) }
 
 // TODO: this does not have cancellation support
-internal fun batchDownloadList(linkListList: List<List<String>>, fileParent: File) = runBlocking<List<List<File>>> {
+internal fun batchDownloadList(linkListList: LinkListList, fileParent: File) = runBlocking<List<List<File>>> {
 	
 	val jobs = List(linkListList.size) { linkListIndex ->
 		
