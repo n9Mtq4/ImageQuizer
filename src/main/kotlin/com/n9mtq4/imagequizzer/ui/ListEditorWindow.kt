@@ -1,5 +1,6 @@
 package com.n9mtq4.imagequizzer.ui
 
+import com.n9mtq4.imagequizzer.listparsers.LIST_PARSER_SCIOLY
 import com.n9mtq4.imagequizzer.worker.queryListToDatabaseAndImages
 import com.n9mtq4.imagequizzer.worker.readFromJar
 import com.n9mtq4.kotlin.extlib.ignoreAndNull
@@ -81,6 +82,16 @@ internal class ListEditorWindow {
 				
 			}
 			
+			menuList("Parser") {
+				
+				menuList("Scioly Parsers") {
+					LIST_PARSER_SCIOLY.forEach { parser ->
+						menuItem(parser.name).onActionSafePst { textArea.text = parser.parseList(textArea.text).joinToString(separator = "\n") }
+					}
+				}
+				
+			}
+			
 			menuList("Stats") {
 				
 				menuItem("Line Count")
@@ -121,8 +132,10 @@ internal class ListEditorWindow {
 		}
 		
 		goButton.addActionListener { e ->
+			println("Started")
 			val outputDir = openDirectoryChooser(frame, "Where to save?") ?: return@addActionListener
 			queryListToDatabaseAndImages(textArea.text.lines(), outputDir, prefix, suffix, numImages, shouldDownload)
+			println("Done")
 		}
 		
 	}
