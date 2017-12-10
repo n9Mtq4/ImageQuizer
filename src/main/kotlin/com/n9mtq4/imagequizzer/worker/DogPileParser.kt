@@ -1,7 +1,7 @@
 package com.n9mtq4.imagequizzer.worker
 
 import com.n9mtq4.imagequizzer.USER_AGENT
-import com.n9mtq4.kotlin.extlib.pstAndNull
+import com.n9mtq4.kotlin.extlib.ignoreAndNull
 import org.jsoup.Jsoup
 import java.net.URLDecoder
 import java.net.URLEncoder
@@ -43,7 +43,7 @@ private fun getImageLinks(url: String, size: Int): List<String> {
 	// now decode the hrefs from dogpile's thumbnails to full images
 	val links = elements
 			.map { it.attr("href") }
-			.mapNotNull { pstAndNull { decodeImageHandler(it) } }
+			.mapNotNull { ignoreAndNull { decodeImageHandler(it) } }
 	
 	// return only a specific size
 	// if size == -1, then return the whole thing

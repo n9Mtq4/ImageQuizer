@@ -1,6 +1,7 @@
 package com.n9mtq4.imagequizzer.worker
 
 import com.n9mtq4.imagequizzer.LinkListList
+import com.n9mtq4.imagequizzer.debugPrint
 import kotlinx.coroutines.experimental.async
 import kotlinx.coroutines.experimental.runBlocking
 import java.io.File
@@ -13,8 +14,32 @@ import java.io.File
 
 internal fun getImageLinksFromList(queryList: List<String>, size: Int = -1) = queryList.map { getImageLinksFromQuery(it, size) }
 
-// TODO: this does not have cancellation support
 internal fun batchDownloadList(linkListList: LinkListList, fileParent: File) = runBlocking<List<List<File>>> {
+	
+	val gSize = 5
+	val groups = linkListList.divideIntoGroupsOf(gSize)
+	
+	val list = groups.mapIndexed { i, it -> batchDownloadListFull(it, fileParent, i * gSize) }.flatten()
+	
+	return@runBlocking list
+	
+}
+
+private fun <R> List<R>.divideIntoGroupsOf(size: Int): List<List<R>> {
+	
+	var l = this
+	val o = ArrayList<List<R>>()
+	while (l.isNotEmpty()) {
+		val s = if (l.size < size) l.size else size
+		o.add(l.take(s))
+		l = l.drop(s)
+	}
+	return o.toList()
+	
+}
+
+// TODO: this does not have cancellation support
+internal fun batchDownloadListFull(linkListList: LinkListList, fileParent: File, startIndex: Int = 0) = runBlocking<List<List<File>>> {
 	
 	val jobs = List(linkListList.size) { linkListIndex ->
 		
@@ -24,8 +49,9 @@ internal fun batchDownloadList(linkListList: LinkListList, fileParent: File) = r
 			// the link list to download
 			val linkList = linkListList[linkListIndex]
 			
+			debugPrint("Started image download")
 			// download them
-			val downloadedList = downloadImages(linkList, File(fileParent, "$linkListIndex").apply { mkdirs() })
+			val downloadedList = downloadImages(linkList, File(fileParent, "${linkListIndex + startIndex}").apply { mkdirs() })
 			
 			// return the outputed files
 			return@async downloadedList
