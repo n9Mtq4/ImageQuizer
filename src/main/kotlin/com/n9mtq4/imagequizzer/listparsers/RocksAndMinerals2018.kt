@@ -6,7 +6,7 @@ package com.n9mtq4.imagequizzer.listparsers
  * @author Will "n9Mtq4" Bresnahan
  */
 
-private val numRegex = Regex("(\\(\\d+\\)|\\s-\\s|,|group)")
+private val splitRegex = Regex("(\\(\\d+\\)|\\s-\\s|,|group)")
 private val familyRegex = Regex("(.+(ates|ides|xene))|(native|Elements)", RegexOption.IGNORE_CASE)
 private val rockFamilyRegex = Regex("(igneous|sedimentary|metamorphic)", RegexOption.IGNORE_CASE)
 private val dontSpaceSplitRegex = Regex("(quartz|schist|satin)", RegexOption.IGNORE_CASE)
@@ -19,8 +19,8 @@ class RocksAndMinerals2018 : ListParser("Rocks and Minerals 2018") {
 		
 		val lines = string.lines()
 		val minerals = lines
-				.filter { it.contains(numRegex) }
-				.flatMap { it.split(numRegex) }
+				.filter { it.contains(splitRegex) }
+				.flatMap { it.split(splitRegex) }
 				.flatMap { it.split("group", ignoreCase = true) }
 				.flatMap { it.split(": ") }
 				.filterNot { it.equals("feldspar", ignoreCase = true) }
@@ -33,7 +33,8 @@ class RocksAndMinerals2018 : ListParser("Rocks and Minerals 2018") {
 				.filterNot { it.contains(rockFamilyRegex) }
 				.filterNot { it.contains(otherBadStuffRegex) }
 				.map { it.replace("/Microcline", "") }
-				.map { if (it == "Crystal") "Crystal Quartz" else it }
+				.map { it.replaceIfEq("Crystal", "Quartz Crystal") }
+//				.map { it.replaceIfEq("Marble", "Marble Rock") }
 				.map(String::trim).filterNot(String::isBlank)
 		
 		return minerals
@@ -41,3 +42,5 @@ class RocksAndMinerals2018 : ListParser("Rocks and Minerals 2018") {
 	}
 	
 }
+
+private fun String.replaceIfEq(equals: String, newString: String) = if (this == equals) newString else this

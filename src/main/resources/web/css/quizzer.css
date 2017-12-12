@@ -1,0 +1,47 @@
+body {
+}
+
+.bigImage {
+    width: 400px;
+    height: auto;
+}
+
+#sainputfield {
+
+    width: 60%;
+    height: auto;
+    font-size: large;
+
+}
+
+#shortanswer {
+    padding-top: 30px;
+}
+
+#nextbuttondiv {
+    padding-top: 30px;
+}
+
+#nextbutton {
+    height: 40px;
+    width: auto;
+}
+
+.horcenter {
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.textcenter {
+    text-align: center;
+}
+
+.imagethumbnail {
+    height: 150px;
+    width: auto;
+}
+
+.hide {
+    display: none;
+}

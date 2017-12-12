@@ -31,6 +31,6 @@ internal fun queryListToDatabaseAndImages(
 	// match the names back up with the links
 	val outputData: OutputData = queryList.zip(downloadedLinks)
 	
-	saveToJson(outputData, File(outputDirectory, "database.json"))
+	saveToJson(outputData, File(outputDirectory.apply { mkdirs() }, "database.json"))
 	
 }

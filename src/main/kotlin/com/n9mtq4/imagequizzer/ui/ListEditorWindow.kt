@@ -134,7 +134,7 @@ internal class ListEditorWindow {
 		goButton.addActionListener { e ->
 			println("Started")
 			val outputDir = openDirectoryChooser(frame, "Where to save?") ?: return@addActionListener
-			queryListToDatabaseAndImages(textArea.text.lines(), outputDir, prefix, suffix, numImages, shouldDownload)
+			queryListToDatabaseAndImages(textArea.text.lines(), File(outputDir, "db/"), prefix, suffix, numImages, shouldDownload)
 			println("Done")
 		}
 		
