@@ -43,7 +43,9 @@ internal fun queryListToDatabaseAndImages(
 	val downloadedLinks = if (!shouldDownload)
 		links
 	else
-		batchDownloadList(links, File(outputDirectory, "imgs").apply { mkdirs() }).map { it.toHtmlFormat(outputDirectory) }
+		batchDownloadList(links, File(outputDirectory, "imgs").apply { mkdirs() })
+				.map { it.toHtmlFormat(outputDirectory) }
+				.map { l -> l.map { li -> "../$li" } } // have to append '../' so it works with directory structure
 	
 	// match the names back up with the links
 	val outputData: OutputData = queryList.map { it.first }.zip(downloadedLinks)
