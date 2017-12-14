@@ -1,6 +1,8 @@
 package com.n9mtq4.imagequizzer.ui
 
+import com.n9mtq4.imagequizzer.listparsers.IDENTITY_PARSER
 import com.n9mtq4.imagequizzer.listparsers.LIST_PARSER_SCIOLY
+import com.n9mtq4.imagequizzer.listparsers.ListParser
 import com.n9mtq4.imagequizzer.worker.queryListToDatabaseAndImages
 import com.n9mtq4.imagequizzer.worker.readFromJar
 import com.n9mtq4.kotlin.extlib.ignoreAndNull
@@ -86,9 +88,11 @@ internal class ListEditorWindow {
 				
 				menuList("Scioly Parsers") {
 					LIST_PARSER_SCIOLY.forEach { parser ->
-						menuItem(parser.name).onActionSafePst { textArea.text = parser.parseList(textArea.text).joinToString(separator = "\n") }
+						menuItem(parser.name).onActionSafePst { applyParser(parser) }
 					}
 				}
+				
+				menuItem(IDENTITY_PARSER.name).onActionSafePst { applyParser(IDENTITY_PARSER) }
 				
 			}
 			
@@ -132,12 +136,17 @@ internal class ListEditorWindow {
 		}
 		
 		goButton.addActionListener { e ->
-			println("Started")
 			val outputDir = openDirectoryChooser(frame, "Where to save?") ?: return@addActionListener
-			queryListToDatabaseAndImages(textArea.text.lines(), File(outputDir, "db/"), prefix, suffix, numImages, shouldDownload)
+			println("Started")
+			// generate the database for them
+			queryListToDatabaseAndImages(IDENTITY_PARSER.parseList(textArea.text), outputDir, prefix, suffix, numImages, shouldDownload)
 			println("Done")
 		}
 		
+	}
+	
+	private fun applyParser(parser: ListParser) {
+		textArea.text = parser.parseList(textArea.text).joinToString(separator = "\n")
 	}
 	
 }
