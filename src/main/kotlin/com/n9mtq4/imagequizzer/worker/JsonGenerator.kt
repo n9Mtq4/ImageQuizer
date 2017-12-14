@@ -13,7 +13,48 @@ import java.io.File
  * @author Will "n9Mtq4" Bresnahan
  */
 
+/**
+ * Saves the ouputdata as a json file.
+ * 
+ * @param outputData the output data (names and links)
+ * @param file the output file. should be something.json
+ * */
 internal fun saveToJson(outputData: OutputData, file: File) = open(file, "w").use { wFile ->
+	
+	wFile.writeln(generateJson(outputData))
+	
+}
+
+/**
+ * Saves the output data as a javascript file with a
+ * varaible that contains the json string.
+ * 
+ * Chrome doesn't serve ajax from the local file system,
+ * which includes json files. For this reason it is
+ * impossible to load a json file without setting up
+ * a local web server, This gets around that restriction
+ * by storing the json insude a javascript file that can be
+ * loaded through html's script tag.
+ * 
+ * Js: JSON.parse(dbjson)
+ * 
+ * @param outputData the output data (names and links)
+ * @param file the output file. should be something.js
+ * */
+internal fun saveToJs(outputData: OutputData, file: File) = open(file, "w").use { wFile ->
+	
+	val json = generateJson(outputData)
+	wFile.writeln("var dbjson = '$json'")
+	
+}
+
+/**
+ * Generates a json string from the output data
+ * 
+ * @param outputData the output data names and links
+ * @return String of the json
+ * */
+private fun generateJson(outputData: OutputData): String {
 	
 	// the whole thing is one json array
 	val rootArray = JsonArray()
@@ -38,7 +79,6 @@ internal fun saveToJson(outputData: OutputData, file: File) = open(file, "w").us
 	// create the gson
 	val gson = GsonBuilder().create()
 	
-	// write to the file
-	wFile.writeln(gson.toJson(rootArray))
+	return gson.toJson(rootArray)
 	
 }

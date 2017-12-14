@@ -10,3 +10,4 @@ js/quizzer.js
 
 css/
 css/jquery-ui.min.css
+css/quizzer.css

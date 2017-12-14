@@ -9,10 +9,13 @@
     
     $(document).ready(function() {
     
-        $.getJSON('../db/database.json', function(data) {
+        /*$.getJSON('../db/database.json', function(data) {
             images = data;
             showMainMenu();
-        });
+        });*/
+        
+        images = JSON.parse(dbjson);
+        showMainMenu();
         
     });
     

@@ -12,7 +12,19 @@ import java.io.File
  * @author Will "n9Mtq4" Bresnahan
  */
 
-internal fun getImageLinksFromList(queryList: List<String>, size: Int = -1) = queryList.map { getImageLinksFromQuery(it, size) }
+internal fun getImageLinksFromList(queryList: List<String>, size: Int = -1) = runBlocking<List<List<String>>> {
+	
+	// old, limit to speed/http connects, had to group
+//	queryList.map { getImageLinksFromQuery(it, size) }
+	
+	val gSize = 10
+	val groups = queryList.divideIntoGroupsOf(gSize)
+	
+	val list = groups.map { l -> l.map { getImageLinksFromQuery(it, size) } }.flatten()
+	
+	return@runBlocking list
+	
+}
 
 internal fun batchDownloadList(linkListList: LinkListList, fileParent: File) = runBlocking<List<List<File>>> {
 	

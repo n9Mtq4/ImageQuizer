@@ -1,6 +1,7 @@
 package com.n9mtq4.imagequizzer.worker
 
 import com.n9mtq4.imagequizzer.OutputData
+import com.n9mtq4.imagequizzer.listparsers.ParserOutput
 import java.io.File
 
 /**
@@ -18,7 +19,7 @@ import java.io.File
  * 4. Saves the rest of the html/css/js files needed to view
  * the images and/or database to the output directory.
  * 
- * @param queryList a list of strings of queries to search for
+ * @param queryList the parser output. Contains names and queries
  * @param outputDirectory a directory to save everything to
  * @param prefix the prefix to add to every query, default: ''
  * @param suffix the suffix to add to every query, default: ''
@@ -26,7 +27,7 @@ import java.io.File
  * @param shouldDownload if it should download the images, default: false
  * */
 internal fun queryListToDatabaseAndImages(
-		queryList: List<String>, 
+		queryList: ParserOutput, 
 		outputDirectory: File, 
 		prefix: String = "",
 		suffix: String = "",
@@ -34,7 +35,7 @@ internal fun queryListToDatabaseAndImages(
 		shouldDownload: Boolean = false) {
 	
 	// apply prefix and suffix onto queries
-	val searchQueries = queryList.map { "$prefix$it$suffix" }
+	val searchQueries = queryList.map { it.second }.map { "$prefix$it$suffix" }
 	// get the links for them
 	val links = getImageLinksFromList(searchQueries, numImages)
 	
@@ -42,16 +43,17 @@ internal fun queryListToDatabaseAndImages(
 	val downloadedLinks = if (!shouldDownload)
 		links
 	else
-		batchDownloadList(links, File(outputDirectory, "imgs")).map { it.toHtmlFormat(outputDirectory) }
+		batchDownloadList(links, File(outputDirectory, "imgs").apply { mkdirs() }).map { it.toHtmlFormat(outputDirectory) }
 	
 	// match the names back up with the links
-	val outputData: OutputData = queryList.zip(downloadedLinks)
+	val outputData: OutputData = queryList.map { it.first }.zip(downloadedLinks)
 	
 	// make sure the output directory, if needed (mkdirs checks if it exists)
 	outputDirectory.mkdirs()
 	
 	// save the output data
-	saveToJson(outputData, File(outputDirectory, "database.json"))
+	saveToJson(outputData, File(File(outputDirectory, "/db/").apply { mkdirs() }, "database.json"))
+	saveToJs(outputData, File(File(outputDirectory, "/db/").apply { mkdirs() }, "database.js"))
 	
 	// export the rest of the viewer files
 	exportResources(outputDirectory)
