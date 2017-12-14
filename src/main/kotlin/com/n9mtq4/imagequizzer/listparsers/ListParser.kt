@@ -6,10 +6,24 @@ package com.n9mtq4.imagequizzer.listparsers
  * @author Will "n9Mtq4" Bresnahan
  */
 
+/**
+ * A list of all the scioly link parsers
+ * */
 val LIST_PARSER_SCIOLY = listOf(RocksAndMinerals2018())
 
-abstract class ListParser(val name: String) {
+typealias ParserOutput = List<Pair<String, String>>
+
+/**
+ * An interface for creating classes that
+ * can parse what is put into the main ui window.
+ * 
+ * Must have a name and a function to parse the list
+ * that returns a list of strings.
+ * */
+interface ListParser {
 	
-	abstract fun parseList(string: String): List<String>
+	val name: String
+	
+	fun parseList(string: String): ParserOutput
 	
 }
