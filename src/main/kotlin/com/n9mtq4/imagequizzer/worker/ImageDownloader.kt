@@ -2,6 +2,7 @@ package com.n9mtq4.imagequizzer.worker
 
 import com.n9mtq4.imagequizzer.USER_AGENT
 import com.n9mtq4.kotlin.extlib.ignoreAndNull
+import com.n9mtq4.kotlin.extlib.syntax.def
 import kotlinx.coroutines.experimental.async
 import kotlinx.coroutines.experimental.runBlocking
 import org.jsoup.Jsoup
@@ -15,6 +16,37 @@ import java.io.FileOutputStream
  */
 
 typealias DlFileNameGenerator = (Int, String) -> String
+
+/**
+ * Downloads a list of images sequentially
+ * */
+fun downloadImagesSeq(links: List<String>, outputParent: File, outputFile: DlFileNameGenerator = { i, e -> "$i.$e" }) = def {
+	
+	links.mapIndexed { i, link ->
+		
+		// get the file extension from the url
+		val fileExtension = link
+			.split("?") // split based on before/after url params
+			.first() // we want before, the url part and not the params part
+			.split(".") // split based on dots
+			.last() // we want the last one. should be file extension
+			.trim() // trim just in case
+			.toLowerCase() // .jpg is better than .JPG
+		val fileName = outputFile(i, fileExtension) // use inputed function to get file name
+		val file = File(outputParent, fileName) // turn into a file
+		
+		// if downloadImage fails and it throws an exception, give it a value of null,
+		// otherwise return the file it was called
+		val out = ignoreAndNull {
+			downloadImage(link, file) // download the image
+			file // return the file output path val out
+		}
+		
+		out
+		
+	}
+	
+}
 
 /**
  * Downloads a list of images asynchronously
@@ -68,7 +100,9 @@ fun downloadImages(links: List<String>, outputParent: File, outputFile: DlFileNa
 /**
  * Download the image with a coroutine
  * */
-suspend private fun downloadImage(link: String, file: File) {
+private fun downloadImage(link: String, file: File) {
+	
+	println("Downloading $link")
 	
 	// image request
 	val response = Jsoup

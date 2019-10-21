@@ -2,6 +2,7 @@ package com.n9mtq4.imagequizzer.worker
 
 import com.n9mtq4.imagequizzer.LinkListList
 import com.n9mtq4.imagequizzer.debugPrint
+import com.n9mtq4.kotlin.extlib.syntax.def
 import kotlinx.coroutines.experimental.async
 import kotlinx.coroutines.experimental.runBlocking
 import java.io.File
@@ -31,9 +32,9 @@ internal fun batchDownloadList(linkListList: LinkListList, fileParent: File) = r
 	val gSize = 5
 	val groups = linkListList.divideIntoGroupsOf(gSize)
 	
-	val list = groups.mapIndexed { i, it -> batchDownloadListFull(it, fileParent, i * gSize) }.flatten()
+	val list = groups.mapIndexed { i, it -> batchDownloadListFullSeq(it, fileParent, i * gSize) }.flatten()
 	
-	return@runBlocking list
+	return@runBlocking list.map { it.filterNotNull() }
 	
 }
 
@@ -47,6 +48,20 @@ private fun <R> List<R>.divideIntoGroupsOf(size: Int): List<List<R>> {
 		l = l.drop(s)
 	}
 	return o.toList()
+	
+}
+
+internal fun batchDownloadListFullSeq(linkListList: LinkListList, fileParent: File, startIndex: Int = 0) = def {
+	
+	linkListList.mapIndexed { index, linkList ->
+		
+		debugPrint("Started image download")
+		
+		val downloadedList = downloadImagesSeq(linkList, File(fileParent, "${index + startIndex}").apply { mkdirs() })
+		
+		downloadedList
+		
+	}
 	
 }
 
