@@ -6,6 +6,13 @@
 (function() {
     
     var images;
+    var quizCorrectIndex = -1;
+    var answerTimesClicked = 0;
+    
+    var quiz = $("#multiplechoice");
+    var image = $("#mcqimage");
+    var choices = $("#choices");
+    var correct = "";
     
     $(document).ready(function() {
     
@@ -18,6 +25,13 @@
         showMainMenu();
         
     });
+    
+    function getRandomInt(min, max) {
+        min = Math.ceil(min);
+        max = Math.floor(max);
+        return Math.floor(Math.random() * (max - min)) + min;
+    }
+    
     
     function clear() {
         $(".clearable").html("");
@@ -47,6 +61,70 @@
         }
     }
     
+    function mcqAnswer(entered) {
+        console.log(entered);
+        if (quizCorrectIndex === entered) {
+            $("#infocontainer").html("Correct. It is " + images[quizCorrectIndex]["name"]);
+            answerTimesClicked++;
+            if (answerTimesClicked >= 2) {
+                newMcqProblem();
+            }
+        }else {
+            $("#infocontainer").html("Incorrect");
+        }
+    }
+    
+    function newMcqProblem() {
+    
+        answerTimesClicked = 0;
+        
+        // get 5 random numbers
+        var randomNums = [];
+        while (randomNums.length < 5) {
+            var possibleRandom = getRandomInt(0, images.length);
+            if (!randomNums.includes(possibleRandom)) {
+                randomNums.push(possibleRandom);
+            }
+        }
+        
+        // get the correct answer index
+        quizCorrectIndex = randomNums[getRandomInt(0, randomNums.length)];
+        
+        // the correct answer
+        correct = images[quizCorrectIndex]["name"];
+        console.log("Correct name is " + correct);
+        console.log("Correct index is " + quizCorrectIndex);
+        var possibleImages = images[quizCorrectIndex]["links"];
+        var imageSrc = possibleImages[getRandomInt(0, possibleImages.length)];
+        image.attr("src", imageSrc);
+        
+        // all possible answers
+        choices.html("");
+        for (var i = 0; i < randomNums.length; i++) {
+            choices.append('<a href="javascript:mcqAnswer(' + randomNums[i] + ');" id="choice_' + i + '">' + images[randomNums[i]]["name"] + '</a><br>');
+        }
+        
+    }
+    
+    function mcq() {
+        
+        // mutliple choice quiz
+        quiz = $("#multiplechoice");
+    
+        // set up
+        quiz.append('<img id="mcqimage" class="bigImage" src="#" />');
+        quiz.append('<div id="choices"></div>');
+        
+        image = $("#mcqimage");
+        choices = $("#choices");
+        correct = "";
+        
+        $("#nextbuttondiv").append('<a href="javascript:newMcqProblem();">Next</a>')
+        
+        newMcqProblem();
+        
+    }
+    
     var choice = function(option) {
         
         console.log("Picked " + option);
@@ -56,7 +134,7 @@
         if (option === "list") {
             list();
         }else if (option === "mc") {
-            
+            mcq();
         }else if (option === "sahelp") {
             
         }else if (option === "sa") {
@@ -71,5 +149,7 @@
     
     window.choice = choice;
     window.showMainMenu = showMainMenu;
+    window.newMcqProblem = newMcqProblem;
+    window.mcqAnswer = mcqAnswer;
     
 })();
