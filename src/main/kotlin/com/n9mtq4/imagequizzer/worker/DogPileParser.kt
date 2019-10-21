@@ -1,7 +1,6 @@
 package com.n9mtq4.imagequizzer.worker
 
 import com.n9mtq4.imagequizzer.USER_AGENT
-import com.n9mtq4.kotlin.extlib.ignoreAndNull
 import org.jsoup.Jsoup
 import java.net.URLDecoder
 import java.net.URLEncoder
@@ -11,8 +10,8 @@ import java.net.URLEncoder
  *
  * @author Will "n9Mtq4" Bresnahan
  */
-private const val SEARCH_URL = "http://www.dogpile.com/dogpl.bko.y/search/images?q=%s"
-private const val IMAGE_LINK_SELECTOR = "#webResults > div > div.resultThumbnailPane > a"
+private const val SEARCH_URL = "https://www.dogpile.com/serp?qc=images&q=%s"
+private const val IMAGE_LINK_SELECTOR = "body > div.layout > div.layout__body > div.layout__mainline > div.mainline-results.mainline-results__images > div > div > div > a"
 
 /**
  * returns a list of image links from a
@@ -54,7 +53,6 @@ private fun getImageLinks(url: String, numOfImages: Int): List<String> {
 	// now decode the hrefs from dogpile's thumbnails to full images
 	val links = elements
 			.map { it.attr("href") }
-			.mapNotNull { ignoreAndNull { decodeImageHandler(it) } }
 	
 	// return only a specific numOfImages
 	// if numOfImages == -1, then return the whole thing
